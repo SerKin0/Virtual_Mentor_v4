@@ -1,21 +1,27 @@
 import json
-import logging
+
+from temp.log import logger
 
 language_path = "database/data/json/languages"
 
 
-def language_data_json(name: str, language="ru") -> list | str:
+def language_data_json(name: str, message=None, language: str = None, id_user: int = None) -> list | str:
     """ Читаем json. файлы с названиями кнопок меню и сообщений, возвращаем из них массив
 
     Args:
+        id_user:
+        message:
         name: Имя меню или сообщения из json файла
         language: Язык сообщения или меню (по умолчанию русский)
 
     Returns:
         Либо Массив названий кнопок, либо сообщения из файла определенного языка
     """
+    from database.methods.db.sqlite_methods import Database
+
+    language = Database.language_user(message, id_user) if not language else language
     with open(f"{language_path}/{language}.json", encoding='utf-8') as f:
-        logging.info(name)
+        logger.error(f"Ошибка: {name}")
         return json.load(f)[name]
 
 
