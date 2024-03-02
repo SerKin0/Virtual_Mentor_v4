@@ -3,9 +3,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Импортируем функцию sort_keyboard_button из модуля keyboards.reply
 from keyboards.reply import sort_keyboard_button
-
-# Импорт логгера из другого модуля
-from main import logger
+from temp.log import logger
 
 
 def create_inline_keyboard_index(buttons: list, index: str, add_last=0, row_width=2) -> InlineKeyboardMarkup | None:

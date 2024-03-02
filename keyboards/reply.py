@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from main import logger  # Импорт логгера из другого модуля
+
+from temp.log import logger
 
 
 def sort_keyboard_button(array: list, row_width=1):
