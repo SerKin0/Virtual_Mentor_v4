@@ -1,11 +1,9 @@
 import json
 
-from temp.log import logger
-
 language_path = "database/data/json/languages"
 
 
-def language_data_json(name: str, message=None, language: str = None, id_user: int = None) -> list | str:
+def language_message(name: str, message=None, language: str = None, id_user: int = None) -> list | str:
     """ Читаем json. файлы с названиями кнопок меню и сообщений, возвращаем из них массив
 
     Args:
@@ -21,7 +19,6 @@ def language_data_json(name: str, message=None, language: str = None, id_user: i
 
     language = Database.language_user(message, id_user) if not language else language
     with open(f"{language_path}/{language}.json", encoding='utf-8') as f:
-        logger.error(f"Ошибка: {name}")
         return json.load(f)[name]
 
 
