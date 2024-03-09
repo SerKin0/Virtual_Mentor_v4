@@ -16,8 +16,8 @@ def language_message(name: str, message=None, language: str = None, id_user: int
         Либо Массив названий кнопок, либо сообщения из файла определенного языка
     """
     from database.methods.db.sqlite_methods import Database
-
-    language = Database.language_user(message, id_user) if not language else language
+    db = Database()
+    language = db.language_user(message, id_user) if not language else language
     with open(f"{language_path}/{language}.json", encoding='utf-8') as f:
         return json.load(f)[name]
 

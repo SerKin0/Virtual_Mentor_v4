@@ -99,43 +99,78 @@ class Database:
         return True
 
     # ________________________________________________ РАЗДЕЛ МЕМОВ ____________________________________________
-    async def get_meme_database(self, message):
-        try:
-            # Запрашиваем количество мемов в Базе Данных
-            count_string = self.cur.execute('SELECT COUNT(id) FROM meme').fetchall()[0][0]
-            # Если мы прошлись по всем мемами (либо программа только запустилась), то...
-            if self.counter % count_string == 0:
-                # Если массив пустой ИЛИ длина нынешнего массива вариантов не равна количеству мемов в БД, то...
-                if not self.variants or len(self.variants) != count_string:
-                    # Записываем в БД массив с ID мемов
-                    self.variants = list(map(lambda x: x[0], self.cur.execute("SELECT id FROM meme").fetchall()))
-                # Подключаем функцию для перемешивания случайным образом
-                from random import shuffle
-                # Перемешиваем массив
-                shuffle(self.variants)
+    async def add_meme_database(self, img: str, text: str, name: str):
+        self.cur.execute('INSERT INTO meme VALUES (?, ?, ?, ?)', tuple((None, img, text, name)))
+        self.base.commit()
 
-            # Выгружаем из БД с мемами строку по ID
-            meme = self.cur.execute(
-                f'SELECT * FROM meme WHERE id = {self.variants[self.counter % len(self.variants)]}'
-            ).fetchall()[0]
+    async def get_meme_database(self):
+        # Запрашиваем количество мемов в Базе Данных
+        count_string = self.cur.execute('SELECT COUNT(id) FROM meme').fetchall()[0][0]
+        # Если мы прошлись по всем мемами (либо программа только запустилась), то...
+        if self.counter % count_string == 0:
+            # Если массив пустой ИЛИ длина нынешнего массива вариантов не равна количеству мемов в БД, то...
+            if not self.variants or len(self.variants) != count_string:
+                # Записываем в БД массив с ID мемов
+                self.variants = list(map(lambda x: x[0], self.cur.execute("SELECT id FROM meme").fetchall()))
+            # Подключаем функцию для перемешивания случайным образом
+            from random import shuffle
+            # Перемешиваем массив
+            shuffle(self.variants)
 
-            # Переходим на следующий мем
-            self.counter += 1
+        # Выгружаем из БД с мемами строку по ID
+        meme = self.cur.execute(
+            f'SELECT * FROM meme WHERE id = {self.variants[self.counter % len(self.variants)]}'
+        ).fetchall()[0]
 
-            # Если нет ссылки на изображения, то...
-            if not meme[1]:
-                # Выводим сообщение только с описанием и ссылкой на автора мема
-                await message.answer(f"{meme[1]}\n\n<i>@ {meme[2]}</i>")
-            # Иначе...
-            else:
-                # Записываем описание мема
-                description = f"{meme[2]}\n\n" if meme[2] else ""
-                # Высылаем фото мема, описание и автора
-                await message.bot.send_photo(message.chat.id, meme[1], f"{description}<i>@ {meme[3]}</i>")
-        except BaseException:
-            # Подключаем функцию для объявления событий
-            await message.answer("Прости, мемов пока нет...")
-            logger.info("НЕТ МЕМОВ!")
+        # Переходим на следующий мем
+        self.counter += 1
+
+        # Если нет ссылки на изображения, то...
+        if not meme[1]:
+            # Выводим сообщение только с описанием и ссылкой на автора мема
+            return "text", None, f"{meme[1]}\n\n<i>@ {meme[2]}</i>"
+        # Иначе...
+        else:
+            # Записываем описание мема
+            description = f"{meme[2]}\n\n" if meme[2] else ""
+            # Высылаем фото мема, описание и автора
+            return "photo", meme[1], f"{description}<i>@ {meme[3]}</i>"
+        # try:
+        #     # Запрашиваем количество мемов в Базе Данных
+        #     count_string = self.cur.execute('SELECT COUNT(id) FROM meme').fetchall()[0][0]
+        #     # Если мы прошлись по всем мемами (либо программа только запустилась), то...
+        #     if self.counter % count_string == 0:
+        #         # Если массив пустой ИЛИ длина нынешнего массива вариантов не равна количеству мемов в БД, то...
+        #         if not self.variants or len(self.variants) != count_string:
+        #             # Записываем в БД массив с ID мемов
+        #             self.variants = list(map(lambda x: x[0], self.cur.execute("SELECT id FROM meme").fetchall()))
+        #         # Подключаем функцию для перемешивания случайным образом
+        #         from random import shuffle
+        #         # Перемешиваем массив
+        #         shuffle(self.variants)
+        #
+        #     # Выгружаем из БД с мемами строку по ID
+        #     meme = self.cur.execute(
+        #         f'SELECT * FROM meme WHERE id = {self.variants[self.counter % len(self.variants)]}'
+        #     ).fetchall()[0]
+        #
+        #     # Переходим на следующий мем
+        #     self.counter += 1
+        #
+        #     # Если нет ссылки на изображения, то...
+        #     if not meme[1]:
+        #         # Выводим сообщение только с описанием и ссылкой на автора мема
+        #         await message.answer(f"{meme[1]}\n\n<i>@ {meme[2]}</i>")
+        #     # Иначе...
+        #     else:
+        #         # Записываем описание мема
+        #         description = f"{meme[2]}\n\n" if meme[2] else ""
+        #         # Высылаем фото мема, описание и автора
+        #         await message.bot.send_photo(message.chat.id, meme[1], f"{description}<i>@ {meme[3]}</i>")
+        # except BaseException:
+        #     # Подключаем функцию для объявления событий
+        #     await message.answer("Прости, мемов пока нет...")
+        #     logger.info("НЕТ МЕМОВ!")
 
     # Сохраняет вопрос в таблицу
     async def sqlAddQuestion(self, question, message=None, id_question=None, id_telegram=None, username=None):
@@ -152,14 +187,19 @@ class Database:
     def all_question_database(self, column="*"):
         return self.cur.execute(f"SELECT {column} FROM question").fetchall()
 
-    def language_user(self, message=None, id_user=None):
+    def language_user(self, message, id_user=None):
+        print(message)
         if not (message or id_user):
-            # self.self.error("Запросили язык пользователя, но дали пустые message И id_user")
             return "ru"
+
         id_user = message.from_user.id if not id_user else id_user
-        language = self.cur.execute(f"SELECT language FROM profile WHERE id_telegram = {id_user}").fetchall()[0][0]
+
+        # Используем безопасный SQL запрос с параметрами для id_user
+        self.cur.execute("SELECT language FROM profile WHERE id_telegram = ?", (id_user,))
+        language = self.cur.fetchone()
+
         if language:
-            return language
+            return language[0]
         else:
             if message:
                 return message.from_user.language_code
@@ -169,10 +209,3 @@ class Database:
     # Запрашивает данные из любой базы данных
     async def data_from_database(self, name_database, column='*', command=None):
         return self.cur.execute(f'SELECT {column} FROM {name_database} {command}').fetchall()[0]
-
-
-# async def sqlAddCommand(state):
-#     async with state.proxy() as data:
-#         print(type(data))
-#         cur.execute('INSERT INTO meme VALUES (?, ?, ?, ?)', tuple([None] + list(data.values())))
-#         base.commit()
